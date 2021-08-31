@@ -1,14 +1,12 @@
-import discord
 import os
-import time
 import random
 from discord.ext import commands
+from discord.ext.commands import has_permissions
 from replit import db
 from words_list import list
-from datetime import datetime
 
 
-client = discord.Client()
+client = commands.Bot(command_prefix = "~")
 token = os.environ['token']
 
 warning = [
@@ -22,49 +20,53 @@ if "responding" not in db.keys():
 async def on_ready():
   print("Up and running {0.user}!".format(client))
 
+
 @client.event
 async def on_message(message):
+  
+
   if message.author == client.user: 
     return 
 
   msg = message.content
-  # myid = '247715665933369346'
 
-  if db["responding"]:
+  # myid = '247715665933369346', personal user id for owner-only commands
+
+  if db["responding"]: # 
     ''' 
     local var for on messsage commands
     '''  
-    count = 0
-    # opens spam_detection to strip white space and check if equal to the user's id
-    '''with open("spam_detection.txt", "r+") as file:
-      for i in file:
-        if i.strip("\n") == str(message.author.id):
-          count += 1
+    hasPerms = message.author.permissions_in(message.channel).manage_messages # permissions check in order to run certain commands (ex: enabling and disabling bot)
 
-    file.writelines(f"{str(message.author.id)}\n")
-    
-    if count > 5 and not message.author.guild_permissions.administrator:
-      await message.channel.purge(after=datetime.now() - datetime.timedelta(hours=1), check = lambda x: x.author.id == message.author.id, oldest_first=False)
-      muted_role = discord.utils.get(discord.guild.roles, name="Muted")
-      await message.author.add_roles(muted_role)'''
-
-    if message.content.startswith('~test'): # command to see if bot is running
+    if msg.startswith('~test'): # command to see if bot is running
       await message.channel.send("Jonathan's Bot! Work in progress!")
 
     if any(word in msg.lower() for word in list):
       await message.delete()
       await message.channel.send(random.choice(warning) + "{}".format(message.author.mention), delete_after=3) # sends a random value(phrase) in warning list and deletes the message subsequently
-     
 
-  if msg == ("~enable"): # enables the bot if user types 
-    db["responding"] = True
-    await message.channel.send("BL33P! is enabled")
+    # enables and disables the bot
+    if msg == ("~enable") and hasPerms:
+      db["responding"] = True
+      await message.channel.send("BL33P! is enabled")
 
-  elif msg == ("~disable"):
-  
-    db["responding"] = False
-    await message.channel.send("Bl33P! is disabled")
+    if msg == ("~disable") and hasPerms:
+      db["responding"] = False
+      await message.channel.send("BL33P! is disabled")
 
+  await client.process_commands(message) # so that on_message does not interfere with any other commands
+    
+@client.command(pass_context=True)
+@has_permissions(administrator=True, manage_messages=True, manage_roles=True) # decorator so that only users with certain permissions can run the command
+async def clear(ctx, num=100):
+    channel = ctx.message.channel
+    msgs = []
+    # appends the messages in msgs list 
+    async for i in channel.history(limit=num + 1): 
+              msgs.append(i)
+
+    await channel.delete_messages(msgs) # deletes msgs list
+    await ctx.send(f'{num} messages have been cleared by {ctx.message.author.mention}', delete_after=3)
 
 client.run(token)
 
