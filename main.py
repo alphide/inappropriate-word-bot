@@ -56,18 +56,59 @@ async def on_message(message):
 
   await client.process_commands(message) # so that on_message does not interfere with any other commands
     
-@client.command(pass_context=True)
-@has_permissions(administrator=True, manage_messages=True, manage_roles=True) # decorator so that only users with certain permissions can run the command
-async def clear(ctx, num=100):
+
+@client.command(pass_context=True, aliases=['c', 'C'])
+@has_permissions(manage_messages=True,
+                 manage_roles=True)  # decorator so that only users with certain permissions can run the command
+async def clearmsg(ctx, num=100):
     channel = ctx.message.channel
     msgs = []
-    # appends the messages in msgs list 
-    async for i in channel.history(limit=num + 1): 
-              msgs.append(i)
+    # appends the messages in msgs list
+    async for i in channel.history(limit=num + 1):  # deletes own command message
+        msgs.append(i)
 
-    await channel.delete_messages(msgs) # deletes msgs list
-    await ctx.send(f'{num} messages have been cleared by {ctx.message.author.mention}', delete_after=3)
+    await channel.delete_messages(msgs)  # deletes msgs list
+    if num == 1:
+        await ctx.send(f'{num} message has been cleared by {ctx.message.author.mention}', delete_after=3)
+    else:
+        await ctx.send(f'{num} messages have been cleared by {ctx.message.author.mention}', delete_after=3)
 
+
+@client.command(pass_context=True, aliases=['ar'])
+@has_permissions(manage_messages=True, manage_roles=True)
+async def role(ctx, user: discord.Member, role: discord.Role): 
+    if role in user.roles:
+        await ctx.send(f'{user.mention} already has this role!')
+    else:
+        await user.add_roles(role)
+        await ctx.send(f'{role.mention} has been given to {user.mention}')
+
+
+@client.command(pass_context=True, aliases=['rr'])
+@has_permissions(manage_messages=True, manage_roles=True)
+async def removerole(ctx, user: discord.Member, role: discord.Role):
+    if role not in user.roles:
+        await ctx.send(f'{user.mention} did not have {role.mention} to begin with!')
+    else:
+        await user.remove_roles(role)
+        await ctx.send(f'{role.mention} has been removed from {user.mention}')
+
+
+@client.command()
+@has_permissions(manage_messages=True, manage_roles=True)
+async def mute(ctx, user: discord.Member):
+    role = discord.utils.get(ctx.guild.roles, name="Muted")
+    await user.add_roles(role)
+    await ctx.send(f"{user.mention} has been muted")
+
+
+@client.command()
+@has_permissions(manage_messages=True, manage_roles=True)
+async def unmute(ctx, user: discord.Member):
+    role = discord.utils.get(ctx.guild.roles, name="Muted")
+    await user.remove_roles(role)
+    await ctx.send(f"{user.mention} has been unmuted")
+    
 client.run(token)
 
 
