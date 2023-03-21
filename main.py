@@ -1,114 +1,104 @@
 import os
+import discord
+import discord.utils
 import random
+import re
+from discord import Emoji
+from discord.utils import get
 from discord.ext import commands
-from discord.ext.commands import has_permissions
-from replit import db
-from words_list import list
 
+from words_list import badlist
+from words_list import family_list
+from words_list import guildID
 
-client = commands.Bot(command_prefix = "~")
-token = os.environ['token']
+intents = discord.Intents.default()
+intents.message_content = True
+
+client = commands.Bot(command_prefix = "~", intents=intents)
+count = 5
+currentTC = ""
+ages = False
+
+token = "ODU4OTc1ODUzODM5OTA4ODY1.GmyWfi.iD528Q4t0vc1fJnfdrwwwSIIbpwRLjYgJUDUlc"
 
 warning = [
-  "No profanity ", "Let's not use that kind of language ", "Can't believe you kiss your mother with that mouth "
-  ]
+    "No profanity ",
+    "Let's not use that kind of language ",
+    "Can't believe you kiss your mother with that mouth "
+]
 
-if "responding" not in db.keys():
-  db['responding'] = True
+@client.command()
+async def load(ctx, extension):
+    client.load_extension(f'cogs.{extension}')
+
+
+@client.command()
+async def unload(ctx, extension):
+    client.unload_extension(f'cogs.{extension}')
+
+
+async def load_cogs():
+    for filename in os.listdir('./Discord Bot/cogs'):
+        if filename.endswith('.py'):
+            await client.load_extension(f'cogs.{filename[:-3]}')
 
 @client.event
 async def on_ready():
-  print("Up and running {0.user}!".format(client))
+    await load_cogs()
+    print("Up and running {0.user}!".format(client))
 
+    
+@client.event
+async def on_guild_join(guild):
+   id = guild.id
+   guildID.add(id)
 
 @client.event
 async def on_message(message):
-  
+    if message.author == client.user:
+        return
 
-  if message.author == client.user: 
-    return 
+    msg = message.content
 
-  msg = message.content
+    # check for banned words in message
+    '''if any(word in msg.lower() for word in family_list):
+        await message.delete()
+        await message.channel.send("No talking about our parents 😓", delete_after=3)
+    if any(word in msg.lower() for word in badlist):
+        await message.delete()
+        await message.channel.send(random.choice(warning) + "{}".format(message.author.mention),
+                                   delete_after=3)  # sends a random value(phrase) in warning list and deletes the message subsequently
+    '''
 
-  # myid = '247715665933369346', personal user id for owner-only commands
-
-  if db["responding"]: # 
-    ''' 
-    local var for on messsage commands
-    '''  
-    hasPerms = message.author.permissions_in(message.channel).manage_messages # permissions check in order to run certain commands (ex: enabling and disabling bot)
-
-    if msg.startswith('~test'): # command to see if bot is running
-      await message.channel.send("Jonathan's Bot! Work in progress!")
-
-    if any(word in msg.lower() for word in list):
-      await message.delete()
-      await message.channel.send(random.choice(warning) + "{}".format(message.author.mention), delete_after=3) # sends a random value(phrase) in warning list and deletes the message subsequently
-
-    # enables and disables the bot
-    if msg == ("~enable") and hasPerms:
-      db["responding"] = True
-      await message.channel.send("BL33P! is enabled")
-
-    if msg == ("~disable") and hasPerms:
-      db["responding"] = False
-      await message.channel.send("BL33P! is disabled")
-
-  await client.process_commands(message) # so that on_message does not interfere with any other commands
+    '''if message.author.id == 143161456119119872:
+     # Replace with the user ID you want to add a reaction to
+        emoji = discord.utils.get(client.emojis, name='FeelsSpecialMan') # Replace with the name of your custom emoji
+        if emoji:
+            await message.add_reaction(emoji) '''
+    if "Muted" in [role.name for role in message.author.roles]:
+        await message.delete()
     
 
-@client.command(pass_context=True, aliases=['c', 'C'])
-@has_permissions(manage_messages=True,
-                 manage_roles=True)  # decorator so that only users with certain permissions can run the command
-async def clearmsg(ctx, num=100):
-    channel = ctx.message.channel
-    msgs = []
-    # appends the messages in msgs list
-    async for i in channel.history(limit=num + 1):  # deletes own command message
-        msgs.append(i)
-
-    await channel.delete_messages(msgs)  # deletes msgs list
-    if num == 1:
-        await ctx.send(f'{num} message has been cleared by {ctx.message.author.mention}', delete_after=3)
+    '''if message.author == client.user:
+        return
+    elif message.content.startswith('~'):
+        return
     else:
-        await ctx.send(f'{num} messages have been cleared by {ctx.message.author.mention}', delete_after=3)
+        words = re.findall(r'\w+|[^\w\s]', message.content)
+        last_word = ""
+        for i in range(len(words) - 1, -1, -1):
+            if words[i].isalpha():
+                last_word = words[i]
+                break
+        if last_word != "":
+            emoji = get(message.guild.emojis, name="OMEGALUL")
+            new_last_word = last_word + "ages"
+            new_message = message.content.rsplit(
+                last_word, 1)[0] + new_last_word + " OMEGALUL " + str(emoji)
+            await message.channel.send(new_message)
+    '''
+    await client.process_commands(message)  # so that on_message does not interfere with any other commands
 
 
-@client.command(pass_context=True, aliases=['ar'])
-@has_permissions(manage_messages=True, manage_roles=True)
-async def role(ctx, user: discord.Member, role: discord.Role): 
-    if role in user.roles:
-        await ctx.send(f'{user.mention} already has this role!')
-    else:
-        await user.add_roles(role)
-        await ctx.send(f'{role.mention} has been given to {user.mention}')
 
-
-@client.command(pass_context=True, aliases=['rr'])
-@has_permissions(manage_messages=True, manage_roles=True)
-async def removerole(ctx, user: discord.Member, role: discord.Role):
-    if role not in user.roles:
-        await ctx.send(f'{user.mention} did not have {role.mention} to begin with!')
-    else:
-        await user.remove_roles(role)
-        await ctx.send(f'{role.mention} has been removed from {user.mention}')
-
-
-@client.command()
-@has_permissions(manage_messages=True, manage_roles=True)
-async def mute(ctx, user: discord.Member):
-    role = discord.utils.get(ctx.guild.roles, name="Muted")
-    await user.add_roles(role)
-    await ctx.send(f"{user.mention} has been muted")
-
-
-@client.command()
-@has_permissions(manage_messages=True, manage_roles=True)
-async def unmute(ctx, user: discord.Member):
-    role = discord.utils.get(ctx.guild.roles, name="Muted")
-    await user.remove_roles(role)
-    await ctx.send(f"{user.mention} has been unmuted")
-    
 client.run(token)
-
-
