@@ -19,7 +19,6 @@ count = 5
 currentTC = ""
 ages = False
 
-token = "ODU4OTc1ODUzODM5OTA4ODY1.GmyWfi.iD528Q4t0vc1fJnfdrwwwSIIbpwRLjYgJUDUlc"
 
 warning = [
     "No profanity ",
