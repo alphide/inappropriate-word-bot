@@ -1,4 +1,5 @@
 import asyncio
+from logging import warning
 import random
 import time
 import discord
@@ -6,20 +7,12 @@ import discord.utils
 import openai
 import requests
 import json
-from playwright.async_api import async_playwright
-from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
+
 from io import BytesIO
 from discord.ext import commands
 from discord.ext.commands import has_permissions
 from sys import platform
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver import ActionChains
-from selenium.webdriver.chrome.options import Options
-from fake_useragent import UserAgent
+
 
 
 with open("./Discord Bot/config.json", "r") as f:
@@ -92,7 +85,7 @@ class General(commands.Cog):
     async def test(self, ctx):
         await ctx.send("Jonathan's bot, WIP")
         return
-
+    """
     @commands.command()
     @has_permissions(manage_messages=True, manage_roles=True)
     async def addword(self, ctx, word: str):
@@ -113,7 +106,7 @@ class General(commands.Cog):
         else:
             await ctx.send(f"{word} is not in the list!")
         return
-
+"""
     
     @commands.command()
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -163,12 +156,12 @@ class General(commands.Cog):
             await ctx.send(file=discord.File(fp=image_file, filename='image.png'))
         except:
             await ctx.send(random.choice(warning))
-
+"""
     @commands.command(name='chegg', help='Get answers from a Chegg link')
     async def chegg(self, ctx, url: str):
         answer = await self.fetch_chegg(url)
         await ctx.send(answer)
-    
+   
     async def fetch_chegg(self, url: str) -> str:
         user_agent = UserAgent()
         chrome_options = Options()
@@ -210,7 +203,7 @@ class General(commands.Cog):
             return answer_text
         else:
             return "No answer found."
-        
+        """ 
     
 async def setup(bot):
     await bot.add_cog(General(bot))
