@@ -6,14 +6,12 @@ import re
 from discord import Emoji
 from discord.utils import get
 from discord.ext import commands
+from interactions import GuildIntegrations
 
-from words_list import badlist
-from words_list import family_list
-from words_list import guildID
 
 intents = discord.Intents.default()
 intents.message_content = True
-
+token = os.getenv('DISCORD_TOKEN')
 client = commands.Bot(command_prefix = "~", intents=intents)
 count = 5
 currentTC = ""
@@ -50,7 +48,7 @@ async def on_ready():
 @client.event
 async def on_guild_join(guild):
    id = guild.id
-   guildID.add(id)
+   GuildIntegrations.add(id)
 
 @client.event
 async def on_message(message):
