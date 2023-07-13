@@ -15,18 +15,15 @@ from sys import platform
 
 
 
-with open("./Discord Bot/config.json", "r") as f:
+with open("./config.json", "r") as f:
     config = json.load(f)
 
-with open("./Discord Bot/cookie.txt", 'r') as f:
-    cookieTxt = f.read()
 
 class General(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.servers = {}
-        self.cookie = cookieTxt
         self.userAgent = config["userAgent"]
 
 
