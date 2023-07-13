@@ -12,9 +12,9 @@ multidict==5.1.0
 py-cord==2.3.3
 pycodestyle==2.8.0
 pycparser==2.20
-PyNaCl==1.4.0
 toml==0.10.2
 typing-extensions==4.4.0
 youtube-dl==2021.12.17
 openai==0.27.8
 yt-dlp==2023.07.06
+PyNaCl==1.5.0
